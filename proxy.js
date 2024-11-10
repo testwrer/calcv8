@@ -1,28 +1,27 @@
+// proxy.js
+
 const express = require('express');
 const request = require('request-promise');
 const app = express();
 const port = 3000;
 
-// Serve static files (like index.html, CSS, JS) from the current directory
+// Serve static files (like your HTML, CSS, JS) from the 'public' folder
 app.use(express.static('public'));
 
-// Proxy route to handle site redirection
+// Proxy endpoint
 app.get('/proxy', async (req, res) => {
-    const url = req.query.url;
-
+    const url = req.query.url; // Get the URL from the query parameter
     if (!url) {
-        return res.status(400).send('No URL provided');
+        return res.status(400).send('URL is required');
     }
 
     try {
-        // Fetch the content from the provided URL
-        const response = await request(url);
-
-        // Send the content back to the client
-        res.send(response);
+        // Fetch the website content and return it as a response
+        const html = await request(url);
+        res.send(html);
     } catch (error) {
-        console.error('Error fetching the URL:', error);
-        res.status(500).send('Error fetching the website.');
+        console.error(error);
+        res.status(500).send('Error fetching the website');
     }
 });
 
@@ -30,3 +29,4 @@ app.get('/proxy', async (req, res) => {
 app.listen(port, () => {
     console.log(`Proxy server running on http://localhost:${port}`);
 });
+
