@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,134 +8,93 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            background-color: #f4f4f4;
         }
-        .container {
-            background: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        #calculator {
+            background-color: #333;
             padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-        }
-        .calculator {
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-        .output {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #fafafa;
-        }
-        .button {
-            width: 80px;
-            height: 80px;
-            font-size: 24px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 8px;
-            border: none;
-            background-color: #4CAF50;
             color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s;
+            width: 300px;
         }
-        .button:hover {
-            background-color: #45a049;
-        }
-        .row {
-            display: flex;
-            justify-content: center;
-        }
-        #message {
-            margin-top: 20px;
+        #url-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
             font-size: 16px;
-            font-weight: normal;
-            text-align: center;
-            color: #444;
         }
-        .hidden {
+        #go-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #loading {
             display: none;
-        }
-        .loading {
-            font-size: 16px;
-            color: #555;
             text-align: center;
-            font-weight: normal;
+            font-size: 20px;
+        }
+        #proxied-iframe {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            height: 500px;
+            border: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="calculator">
-            <div class="output" id="output">1234</div>
-            <div class="row">
-                <button class="button" onclick="appendNumber(1)">1</button>
-                <button class="button" onclick="appendNumber(2)">2</button>
-                <button class="button" onclick="appendNumber(3)">3</button>
-            </div>
-            <div class="row">
-                <button class="button" onclick="appendNumber(4)">4</button>
-                <button class="button" onclick="appendNumber(5)">5</button>
-                <button class="button" onclick="appendNumber(6)">6</button>
-            </div>
-            <div class="row">
-                <button class="button" onclick="appendNumber(7)">7</button>
-                <button class="button" onclick="appendNumber(8)">8</button>
-                <button class="button" onclick="appendNumber(9)">9</button>
-            </div>
-            <div class="row">
-                <button class="button" onclick="appendNumber(0)">0</button>
-                <button class="button" onclick="clearInput()">C</button>
-                <button class="button" onclick="submitInput()">Go to Proxied Site</button>
-            </div>
-            <div id="message" class="hidden">Input your site URL below</div>
-            <div id="loading" class="hidden">Loading...</div>
-        </div>
-    </div>
+<div id="calculator">
+    <h1>Calculator Proxy</h1>
+    <input id="url-input" type="text" placeholder="Enter a URL" />
+    <button id="go-btn">Go to Proxied Site</button>
+    <div id="loading">Loading...</div>
+    <iframe id="proxied-iframe"></iframe>
+</div>
 
-    <script>
-        let output = document.getElementById('output');
-        let message = document.getElementById('message');
-        let loadingMessage = document.getElementById('loading');
-        let currentInput = '';
-        
-        function appendNumber(num) {
-            if (currentInput.length < 4) {
-                currentInput += num;
-                output.textContent = currentInput;
+<script>
+    const goBtn = document.getElementById('go-btn');
+    const urlInput = document.getElementById('url-input');
+    const loadingText = document.getElementById('loading');
+    const proxiedIframe = document.getElementById('proxied-iframe');
+
+    goBtn.addEventListener('click', async () => {
+        const url = urlInput.value.trim();
+        if (url) {
+            loadingText.style.display = 'block';  // Show loading screen
+            proxiedIframe.style.display = 'none';  // Hide iframe
+
+            try {
+                // Request the proxied content from the server
+                const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`);
+                const html = await response.text();
+                
+                // Replace iframe content with the proxied website
+                proxiedIframe.srcdoc = html;
+                proxiedIframe.style.display = 'block'; // Show iframe with proxied content
+            } catch (error) {
+                console.error('Error fetching proxied content:', error);
+                alert('Failed to load the website');
+            } finally {
+                loadingText.style.display = 'none';  // Hide loading screen
             }
+        } else {
+            alert('Please enter a URL');
         }
-
-        function clearInput() {
-            currentInput = '';
-            output.textContent = '1234';
-        }
-
-        function submitInput() {
-            if (currentInput === '1234') {
-                message.classList.remove('hidden');
-                setTimeout(() => {
-                    message.textContent = 'Input your site URL';
-                    loadingMessage.classList.remove('hidden');
-                }, 1000);
-            } else {
-                window.location.href = `http://your-proxy-url.com/proxy?url=${currentInput}`;
-            }
-        }
-    </script>
+    });
+</script>
 
 </body>
 </html>
