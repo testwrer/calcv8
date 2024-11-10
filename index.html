@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator Proxy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        .calculator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .output {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .button {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .row {
+            display: flex;
+            justify-content: center;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: normal;
+            text-align: center;
+            color: #444;
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            font-size: 16px;
+            color: #555;
+            text-align: center;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="calculator">
+            <div class="output" id="output">1234</div>
+            <div class="row">
+                <button class="button" onclick="appendNumber(1)">1</button>
+                <button class="button" onclick="appendNumber(2)">2</button>
+                <button class="button" onclick="appendNumber(3)">3</button>
+            </div>
+            <div class="row">
+                <button class="button" onclick="appendNumber(4)">4</button>
+                <button class="button" onclick="appendNumber(5)">5</button>
+                <button class="button" onclick="appendNumber(6)">6</button>
+            </div>
+            <div class="row">
+                <button class="button" onclick="appendNumber(7)">7</button>
+                <button class="button" onclick="appendNumber(8)">8</button>
+                <button class="button" onclick="appendNumber(9)">9</button>
+            </div>
+            <div class="row">
+                <button class="button" onclick="appendNumber(0)">0</button>
+                <button class="button" onclick="clearInput()">C</button>
+                <button class="button" onclick="submitInput()">Go to Proxied Site</button>
+            </div>
+            <div id="message" class="hidden">Input your site URL below</div>
+            <div id="loading" class="hidden">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        let output = document.getElementById('output');
+        let message = document.getElementById('message');
+        let loadingMessage = document.getElementById('loading');
+        let currentInput = '';
+        
+        function appendNumber(num) {
+            if (currentInput.length < 4) {
+                currentInput += num;
+                output.textContent = currentInput;
+            }
+        }
+
+        function clearInput() {
+            currentInput = '';
+            output.textContent = '1234';
+        }
+
+        function submitInput() {
+            if (currentInput === '1234') {
+                message.classList.remove('hidden');
+                setTimeout(() => {
+                    message.textContent = 'Input your site URL';
+                    loadingMessage.classList.remove('hidden');
+                }, 1000);
+            } else {
+                window.location.href = `http://your-proxy-url.com/proxy?url=${currentInput}`;
+            }
+        }
+    </script>
+
+</body>
+</html>
