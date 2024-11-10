@@ -1,100 +1,190 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator Proxy</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
-        #calculator {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: white;
-            width: 300px;
-        }
-        #url-input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        #go-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        #loading {
-            display: none;
-            text-align: center;
-            font-size: 20px;
-        }
-        #proxied-iframe {
-            display: none;
-            margin-top: 20px;
-            width: 100%;
-            height: 500px;
-            border: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proxy Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #ff7e5f, #feb47b); /* Gradient background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .calculator {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 300px;
+      transform: scale(1.1); /* Make the calculator slightly larger */
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .calculator input {
+      grid-column: span 4;
+      font-size: 20px;
+      padding: 12px;
+      text-align: center;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background-color: #f4f4f4;
+    }
+
+    .calculator button {
+      font-size: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .calculator button:hover {
+      background-color: #f0f0f0;
+    }
+
+    #pin-message {
+      color: red;
+      text-align: center;
+      grid-column: span 4;
+      display: none;
+    }
+
+    #url-section {
+      display: none;
+      grid-column: span 4;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #loading-screen {
+      display: none;
+      grid-column: span 4;
+      text-align: center;
+      font-size: 20px;
+      color: #333;
+    }
+
+    /* Floating Correct Pin Bar */
+    #correct-pin-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #4caf50;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      display: none;
+      z-index: 999;
+      transition: transform 0.3s ease-out;
+    }
+
+    #correct-pin-bar.show {
+      transform: translateY(0);
+    }
+
+    /* URL Input Styling */
+    #url-input {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 80%;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
+  <div id="correct-pin-bar">Correct Pin. Continue?</div>
 
-<div id="calculator">
-    <h1>Calculator Proxy</h1>
-    <input id="url-input" type="text" placeholder="Enter a URL" />
-    <button id="go-btn">Go to Proxied Site</button>
-    <div id="loading">Loading...</div>
-    <iframe id="proxied-iframe"></iframe>
-</div>
+  <div class="calculator">
+    <input type="text" id="pin-input" placeholder="Enter Pin" readonly>
+    <button onclick="pressKey(1)">1</button>
+    <button onclick="pressKey(2)">2</button>
+    <button onclick="pressKey(3)">3</button>
+    <button onclick="pressKey(4)">4</button>
+    <button onclick="pressKey(5)">5</button>
+    <button onclick="pressKey(6)">6</button>
+    <button onclick="pressKey(7)">7</button>
+    <button onclick="pressKey(8)">8</button>
+    <button onclick="pressKey(9)">9</button>
+    <button onclick="pressKey(0)">0</button>
+    <button onclick="clearPin()">Clear</button>
+    <button onclick="submitPin()">Submit</button>
 
-<script>
-    const goBtn = document.getElementById('go-btn');
-    const urlInput = document.getElementById('url-input');
-    const loadingText = document.getElementById('loading');
-    const proxiedIframe = document.getElementById('proxied-iframe');
+    <div id="pin-message">Incorrect Pin. Try Again!</div>
 
-    goBtn.addEventListener('click', async () => {
-        const url = urlInput.value.trim();
-        if (url) {
-            loadingText.style.display = 'block';  // Show loading screen
-            proxiedIframe.style.display = 'none';  // Hide iframe
+    <!-- URL Input Section -->
+    <div id="url-section">
+      <input type="text" id="url-input" placeholder="Input your site URL">
+      <button onclick="goToProxiedSite()">Go to Proxied Site</button>
+    </div>
 
-            try {
-                // Request the proxied content from the server
-                const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`);
-                const html = await response.text();
-                
-                // Replace iframe content with the proxied website
-                proxiedIframe.srcdoc = html;
-                proxiedIframe.style.display = 'block'; // Show iframe with proxied content
-            } catch (error) {
-                console.error('Error fetching proxied content:', error);
-                alert('Failed to load the website');
-            } finally {
-                loadingText.style.display = 'none';  // Hide loading screen
-            }
-        } else {
-            alert('Please enter a URL');
-        }
-    });
-</script>
+    <!-- Loading Screen -->
+    <div id="loading-screen">Loading...</div>
+  </div>
 
+  <script>
+    let pinEntered = '';
+    const correctPin = '1234';
+
+    // Handle keypress on calculator
+    function pressKey(number) {
+      const pinInput = document.getElementById('pin-input');
+      pinEntered += number;
+      pinInput.value = pinEntered;
+    }
+
+    // Clear the pin input
+    function clearPin() {
+      pinEntered = '';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-message').style.display = 'none';
+      document.getElementById('correct-pin-bar').style.display = 'none';
+    }
+
+    // Submit the pin
+    function submitPin() {
+      if (pinEntered === correctPin) {
+        // Pin is correct, show the floating bar
+        document.getElementById('correct-pin-bar').classList.add('show');
+        setTimeout(() => {
+          document.getElementById('correct-pin-bar').style.display = 'none';
+        }, 3000); // Hide after 3 seconds
+
+        // Pin is correct, show URL input section
+        document.getElementById('url-section').style.display = 'block';
+        document.getElementById('pin-input').style.display = 'none';
+        document.getElementById('pin-message').style.display = 'none';
+      } else {
+        // Incorrect pin, show message
+        document.getElementById('pin-message').style.display = 'block';
+      }
+    }
+
+    // Handle going to the proxied site
+    function goToProxiedSite() {
+      const url = document.getElementById('url-input').value;
+      if (url) {
+        document.getElementById('loading-screen').style.display = 'block';
+        setTimeout(() => {
+          window.location.href = `https://your-proxy-url.com/?url=${encodeURIComponent(url)}`;
+        }, 1000);  // Simulate loading
+      }
+    }
+  </script>
 </body>
 </html>
